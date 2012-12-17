@@ -1,0 +1,14 @@
+{
+    "name": "jerive/container-explorer-bundle",
+    "description": "Adds a WebDebugToolbar panel to explore the service container",
+    "authors": [
+        {
+            "name": "jerive",
+            "email": "jerome.viveret@gmail.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {
+	"symfony/web-profiler-bundle": "*"
+    }
+}

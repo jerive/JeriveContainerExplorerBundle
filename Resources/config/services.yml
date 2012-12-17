@@ -1,0 +1,7 @@
+parameters:
+#    jerive_container_explorer.example.class: Jerive\Bundle\ContainerExplorerBundle\Example
+
+services:
+#    jerive_container_explorer.example:
+#        class: %jerive_container_explorer.example.class%
+#        arguments: [@service_id, "plain_value", %parameter%]
