@@ -1,0 +1,29 @@
+{% extends 'WebProfilerBundle:Profiler:layout.html.twig' %}
+
+{% block toolbar %}
+    {% set icon %}
+        
+    {% endset %}
+    {% set text %}
+        {% spaceless %}
+            <span>Toto</span>
+        {% endspaceless %}
+    {% endset %}
+    {% include 'WebProfilerBundle:Profiler:toolbar_item.html.twig' with { 'link': profiler_url } %}
+{% endblock %}
+
+{% block menu %}
+    <span class="label">
+    <span class="icon">
+
+    </span>
+    <strong>CONTAINER</strong>
+    <span class="count">
+        <span>{{ collector.name }}</span>
+    </span>
+</span>
+{% endblock %}
+
+{% block panel %}
+    <script src="http://d3js.org/d3.v2.js"></script>
+{% endblock %}

@@ -1,7 +1,10 @@
 parameters:
-#    jerive_container_explorer.example.class: Jerive\Bundle\ContainerExplorerBundle\Example
+    jerive_container_profiler.class: Jerive\Bundle\ContainerExplorerBundle\DataCollector\ContainerDataCollector
 
 services:
-#    jerive_container_explorer.example:
-#        class: %jerive_container_explorer.example.class%
-#        arguments: [@service_id, "plain_value", %parameter%]
+    jerive_container_profiler:
+        class: %jerive_container_profiler.class%
+        tags:
+          - name: data_collector
+            template: JeriveContainerExplorerBundle:Collector:index.html.twig
+            id: container
