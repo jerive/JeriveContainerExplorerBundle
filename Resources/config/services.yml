@@ -6,5 +6,5 @@ services:
         class: %jerive_container_profiler.class%
         tags:
           - name: data_collector
-            template: JeriveContainerExplorerBundle:Collector:index.html.twig
+            template: JeriveContainerExplorerBundle:Collector:index
             id: container
