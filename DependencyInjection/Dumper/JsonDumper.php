@@ -30,7 +30,7 @@ class JsonDumper extends Dumper
             }
         }
 
-        return json_encode($this->nodes);
+        return json_encode(array('children' => array_values($this->nodes), 'name' => 'Container'));
     }
 
     /**
@@ -92,6 +92,7 @@ class JsonDumper extends Dumper
             if ($definition instanceof Definition) {
                 if ($definition->isPublic()) {
                     $nodes[$id] = array('name' => array(
+                        'id'        => $id,
                         'class'     => $definition->getClass(),
                         'public'    => $definition->isPublic(),
                         'abstract'  => $definition->isAbstract(),

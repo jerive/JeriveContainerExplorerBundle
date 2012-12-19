@@ -85,7 +85,7 @@
             .sort(null)
             .value(function(d) { return d.size; });
 
-        var bundle = d3.layout.bundle();
+        var bundle = d3.layout.bundle().;
 
         var line = d3.svg.line.radial()
             .interpolate("bundle")
@@ -102,6 +102,7 @@
         ;
 
         d3.json("/app_dev.php/_container_json", function(classes) {
+            console.log(classes);
             var nodes = cluster.nodes(classes), //cluster.nodes(packages.root(classes)),
                 links = packages.imports(nodes),
                 splines = bundle(links);
