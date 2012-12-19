@@ -6,8 +6,9 @@ use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\Config\FileLocator;
+use \Symfony\Component\DependencyInjection\Loader\XmlFileLoader;
 
-use Jerive\Bundle\ContainerExplorerBundle\DependencyInjection\JsonDumper;
+use Jerive\Bundle\ContainerExplorerBundle\DependencyInjection\Dumper\JsonDumper;
 
 class DefaultController extends Controller
 {

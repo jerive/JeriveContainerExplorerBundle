@@ -27,7 +27,7 @@
 {% block panel %}
     <script src="http://d3js.org/d3.v2.min.js"></script>
     <script type="text/javascript">
-        d3.json("/_container_json", function(classes) {
+        d3.json("/app_dev.php/_container_json", function(classes) {
             var nodes = cluster.nodes(packages.root(classes)),
                 links = packages.imports(nodes),
                 splines = bundle(links);
