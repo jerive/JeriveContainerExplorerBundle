@@ -16,21 +16,24 @@ class JsonDumper extends Dumper
 
         foreach ($this->container->getDefinitions() as $id => $definition) {
             if ($definition->isPublic()) {
-                $this->nodes[$id]['children'] = array_merge(
+                $this->edges[$id] = array_merge(
                     $this->findEdges($id, $definition->getArguments(), true, ''),
                     $this->findEdges($id, $definition->getProperties(), false, '')
                 );
 
                 foreach ($definition->getMethodCalls() as $call) {
-                    $this->nodes[$id]['children'] = array_merge(
-                        $this->nodes[$id]['children'],
+                    $this->edges[$id] = array_merge(
+                        $this->edges[$id],
                         $this->findEdges($id, $call[1], false, $call[0])
                     );
                 }
             }
         }
 
-        return json_encode(array('children' => array_values($this->nodes), 'name' => 'Container'));
+        return json_encode(array(
+            'nodes' => array_values($this->nodes),
+            'edges' => array_reduce($this->edges, 'array_merge', array())
+        ));
     }
 
     /**
@@ -57,14 +60,9 @@ class JsonDumper extends Dumper
                 $definition = $this->resolveServiceDefinition((string) $argument);
                 if ($definition instanceof Definition) {
                     if ($definition->isPublic()) {
-                        $edges[] = (string) $argument;
+                        $edges[] = array($id, (string) $argument, $name);
                     }
                 }
-
-                if (!$this->container->has((string) $argument)) {
-                    $this->nodes[(string) $argument] = $name;
-                }
-
             } elseif (is_array($argument)) {
                 $edges = array_merge($edges, $this->findEdges($id, $argument, $required, $name));
             }
@@ -91,17 +89,17 @@ class JsonDumper extends Dumper
 
             if ($definition instanceof Definition) {
                 if ($definition->isPublic()) {
-                    $nodes[$id] = array('name' => array(
+                    $nodes[$id] = array(
                         'id'        => $id,
                         'class'     => $definition->getClass(),
                         'public'    => $definition->isPublic(),
                         'abstract'  => $definition->isAbstract(),
                         'synthetic' => $definition->isSynthetic(),
                         'tags'      => array_keys($definition->getTags()),
-                    ));
+                    );
                 }
             } else {
-                $nodes[$id] = array('name' => array('class' => get_class($definition)));
+                $nodes[$id] = array('class' => get_class($definition));
             }
         }
 
