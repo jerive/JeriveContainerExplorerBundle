@@ -7,6 +7,8 @@ use Symfony\Component\DependencyInjection\Parameter;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Alias;
+use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\DependencyInjection\Exception\InvalidArgumentException;
 
 class JsonDumper extends Dumper
 {
@@ -57,11 +59,17 @@ class JsonDumper extends Dumper
             }
 
             if ($argument instanceof Reference) {
-                $definition = $this->resolveServiceDefinition((string) $argument);
-                if ($definition instanceof Definition) {
-                    if ($definition->isPublic()) {
-                        $edges[] = array($id, (string) $argument, $name);
+                try {
+                    $definition = $this->resolveServiceDefinition((string) $argument);
+                    if ($definition instanceof Definition) {
+                        if ($definition->isPublic()) {
+                            $edges[] = array($id, (string) $argument, $name);
+                        }
+                    } else {
+                        var_dump((string) $definition, get_class($definition));
                     }
+                } catch (InvalidArgumentException $e) {
+                    continue;
                 }
             } elseif (is_array($argument)) {
                 $edges = array_merge($edges, $this->findEdges($id, $argument, $required, $name));
@@ -89,9 +97,16 @@ class JsonDumper extends Dumper
 
             if ($definition instanceof Definition) {
                 if ($definition->isPublic()) {
+                    $class = $definition->getClass();
+                    if (strpos($class, '%') === 0) {
+                        $class = $this->container->getParameter(trim($class, '%'));
+                    }
+                    if ($class == null) {
+                        $class = 'Symfony\Bridge\Monolog\Logger';
+                    }
                     $nodes[$id] = array(
                         'id'        => $id,
-                        'class'     => $definition->getClass(),
+                        'class'     => $class,
                         'public'    => $definition->isPublic(),
                         'abstract'  => $definition->isAbstract(),
                         'synthetic' => $definition->isSynthetic(),
@@ -99,7 +114,14 @@ class JsonDumper extends Dumper
                     );
                 }
             } else {
-                $nodes[$id] = array('class' => get_class($definition));
+                $nodes[$id] = array(
+                    'id'        => $id,
+                    'class'     => get_class($definition),
+                    'public'    => false,
+                    'abstract'  => false,
+                    'synthetic' => false,
+                    'tags'      => array(),
+                );
             }
         }
 

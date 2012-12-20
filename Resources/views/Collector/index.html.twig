@@ -13,7 +13,8 @@
 {% endblock %}
 
 {% block panel %}
-    <div id="container_explorer"></div>
+    <h2>Container explorer</h2>
+    <div id="container_explorer"><h3>Loading...</h3></div>
     <script src="http://d3js.org/d3.v2.min.js"></script>
     <script type="text/javascript">
         var diameter = 900,
@@ -27,56 +28,56 @@
 
         var bundle = d3.layout.bundle();
 
-        var line = d3.svg.line.radial()
-            .interpolate("bundle")
-            .tension(.85)
-            .radius(function(d) { return d.y; })
-            .angle(function(d) { return d.x / 180 * Math.PI; })
-        ;
-
-        var svg = d3.select("#container_explorer").append("svg")
-            .attr("width", diameter)
-            .attr("height", diameter)
-          .append("g")
-            .attr("transform", "translate(" + radius + "," + radius + ")")
-        ;
-
-        function mouseover(d) {
-            svg.selectAll("path.link.target-" + d.key)
-              .classed("target", true)
-              .each(updateNodes("source", true))
-            ;
-
-            svg.selectAll("path.link.source-" + d.key)
-              .classed("source", true)
-              .each(updateNodes("target", true))
-            ;
-        }
-
-        function mouseout(d) {
-            svg.selectAll("path.link.source-" + d.key)
-              .classed("source", false)
-              .each(updateNodes("target", false))
-            ;
-
-            svg.selectAll("path.link.target-" + d.key)
-              .classed("target", false)
-              .each(updateNodes("source", false))
-            ;
-        }
-
-        function updateNodes(name, value) {
-            return function(d) {
-                if (value) this.parentNode.appendChild(this);
-                svg.select("#node-" + d[name].key).classed(name, value);
-            };
-        }
-
         d3.json("/app_dev.php/_container_json", function(classes) {
             var nodes   = cluster.nodes(packages.root(classes.nodes)),
                 links   = packages.imports(nodes, classes.edges),
                 splines = bundle(links)
             ;
+
+            var svg = d3.select("#container_explorer").html('').append("svg")
+                .attr("width", diameter)
+                .attr("height", diameter)
+              .append("g")
+                .attr("transform", "translate(" + radius + "," + radius + ")")
+            ;
+
+            var line = d3.svg.line.radial()
+                .interpolate("bundle")
+                .tension(.85)
+                .radius(function(d) { return d.y; })
+                .angle(function(d) { return d.x / 180 * Math.PI; })
+            ;
+
+            function mouseover(d) {
+                svg.selectAll("path.link.target-" + d.key)
+                  .classed("target", true)
+                  .each(updateNodes("source", true))
+                ;
+
+                svg.selectAll("path.link.source-" + d.key)
+                  .classed("source", true)
+                  .each(updateNodes("target", true))
+                ;
+            }
+
+            function mouseout(d) {
+                svg.selectAll("path.link.source-" + d.key)
+                  .classed("source", false)
+                  .each(updateNodes("target", false))
+                ;
+
+                svg.selectAll("path.link.target-" + d.key)
+                  .classed("target", false)
+                  .each(updateNodes("source", false))
+                ;
+            }
+
+            function updateNodes(name, value) {
+                return function(d) {
+                    if (value) this.parentNode.appendChild(this);
+                    svg.select("#node-" + d[name].key).classed(name, value);
+                };
+            }
 
             var path = svg.selectAll("path.link")
                 .data(links)
@@ -100,7 +101,7 @@
                   .attr("dy", ".31em")
                   .attr("text-anchor", function(d) { return d.x < 180 ? "start" : "end"; })
                   .attr("transform", function(d) { return d.x < 180 ? null : "rotate(180)"; })
-                  .text(function(d) { console.log(d); return d.id; })
+                  .text(function(d) { return d.id; })
                   .on('mouseover', mouseover)
                   .on('mouseout', mouseout)
             ;
@@ -126,6 +127,9 @@
                         i = name.lastIndexOf("_");
                     }
                     node.parent = find(name.substring(0, i));
+                    if (typeof node.parent.children == 'undefined') {
+                        node.parent.children = [];
+                    }
                     node.parent.children.push(node);
                     node.key = name.substring(i + 1);
                   }
@@ -153,9 +157,9 @@
               // For each import, construct a link from the source to target node.
               edges.forEach(function(d) {
                   if (typeof map[d[1]] == 'undefined' ) {
-                      //console.log(d[1]);
+                      console.log(d[0]);
                   } else if (typeof map[d[0]] == 'undefined') {
-                      //console.log(d[0]);
+                      console.log(d[1]);
                   } else {
                     imports.push({
                         source: map[d[0]],

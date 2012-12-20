@@ -1,9 +1,9 @@
 parameters:
-    jerive_container_profiler.class: Jerive\Bundle\ContainerExplorerBundle\DataCollector\ContainerDataCollector
+    jerive.container_profiler.class: Jerive\Bundle\ContainerExplorerBundle\DataCollector\ContainerDataCollector
 
 services:
-    jerive_container_profiler:
-        class: %jerive_container_profiler.class%
+    jerive.container_profiler:
+        class: %jerive.container_profiler.class%
         tags:
           - name: data_collector
             template: JeriveContainerExplorerBundle:Collector:index
