@@ -1,17 +1,5 @@
 {% extends 'WebProfilerBundle:Profiler:layout.html.twig' %}
 
-{% block toolbar %}
-    {% set icon %}
-
-    {% endset %}
-    {% set text %}
-        {% spaceless %}
-            <span>Toto</span>
-        {% endspaceless %}
-    {% endset %}
-    {% include 'WebProfilerBundle:Profiler:toolbar_item.html.twig' with { 'link': profiler_url } %}
-{% endblock %}
-
 {% block menu %}
     <span class="label">
     <span class="icon">
@@ -28,9 +16,9 @@
     <div id="container_explorer"></div>
     <script src="http://d3js.org/d3.v2.min.js"></script>
     <script type="text/javascript">
-        var diameter = 1100,
+        var diameter = 900,
             radius = diameter / 2,
-            innerRadius = radius - 130;
+            innerRadius = radius - 170;
 
         var cluster = d3.layout.cluster()
             .size([360, innerRadius])
@@ -85,46 +73,34 @@
         }
 
         d3.json("/app_dev.php/_container_json", function(classes) {
-            console.log(classes);
             var nodes   = cluster.nodes(packages.root(classes.nodes)),
                 links   = packages.imports(nodes, classes.edges),
                 splines = bundle(links)
             ;
 
-            nodes.forEach(function(d) {
-                if (typeof d.parent == 'undefined') {
-                    //d.parent = null;
-                }
-            });
-
-            links.forEach(function(d) {
-                //console.log(d);
-            });
-
             var path = svg.selectAll("path.link")
                 .data(links)
               .enter().append("svg:path")
                 .attr("class", function(d, i) {
-                    if (typeof d.source != 'undefined') {
-                        return "link source-" + d.source.key + " target-" + d.target.key;
-                    } else {
-                        return 'link';
-                    }
+                    return "link source-" + d.source.key + " target-" + d.target.key;
                 })
-                .attr("d", function(d, i) { return line(splines[i]); });
+                .attr("d", function(d, i) {
+                    return line(splines[i]);
+                });
             ;
 
             svg.selectAll(".node")
                 .data(nodes.filter(function(n) { return !n.children; }))
                 .enter().append("g")
                   .attr("class", "node")
+                  .attr("id", function(d) { return "node-" + d.key; })
                   .attr("transform", function(d) { return "rotate(" + (d.x - 90) + ")translate(" + d.y + ")"; })
                 .append("text")
                   .attr("dx", function(d) { return d.x < 180 ? 8 : -8; })
                   .attr("dy", ".31em")
                   .attr("text-anchor", function(d) { return d.x < 180 ? "start" : "end"; })
                   .attr("transform", function(d) { return d.x < 180 ? null : "rotate(180)"; })
-                  .text(function(d) { return d.key; })
+                  .text(function(d) { console.log(d); return d.id; })
                   .on('mouseover', mouseover)
                   .on('mouseout', mouseout)
             ;
@@ -145,7 +121,11 @@
                 if (!node) {
                   node = map[name] = data || {name: name, children: []};
                   if (name && name.length) {
-                    node.parent = find(name.substring(0, i = name.lastIndexOf("\\")));
+                    i = name.lastIndexOf("\\");
+                    if (i === -1) {
+                        i = name.lastIndexOf("_");
+                    }
+                    node.parent = find(name.substring(0, i));
                     node.parent.children.push(node);
                     node.key = name.substring(i + 1);
                   }
@@ -212,6 +192,8 @@ path.arc {
 .node:hover {
   fill: #1f77b4;
   cursor: pointer;
+  font-size: 12px;
+  font-weight: bold;
 }
 
 .link {
@@ -228,6 +210,8 @@ path.arc {
 
 .node.target {
   fill: #d62728 !important;
+  font-size: 12px;
+  font-weight: bold;
 }
 
 .link.source {
@@ -236,6 +220,8 @@ path.arc {
 
 .node.source {
   fill: #2ca02c;
+  font-size: 12px;
+  font-weight: bold;
 }
 
 .link.target {
