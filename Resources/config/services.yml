@@ -4,6 +4,8 @@ parameters:
 services:
     jerive.container_profiler:
         class: %jerive.container_profiler.class%
+        calls:
+            - [ setContainer, ["@service_container"]]
         tags:
           - name: data_collector
             template: JeriveContainerExplorerBundle:Collector:index

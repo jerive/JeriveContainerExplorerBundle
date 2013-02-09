@@ -14,9 +14,12 @@
 
 {% block panel %}
     <h2>Container explorer</h2>
+    <div id="container_filter"></div>
     <div id="container_explorer"><h3>Loading...</h3></div>
     <script src="http://d3js.org/d3.v2.min.js"></script>
     <script type="text/javascript">
+        var usedServices = {{collector.usedservices|json_encode|raw}};
+
         var diameter = 900,
             radius = diameter / 2,
             innerRadius = radius - 170;
@@ -29,10 +32,26 @@
         var bundle = d3.layout.bundle();
 
         d3.json("/app_dev.php/_container_json", function(classes) {
+            var used      = usedServices.length,
+                available = classes.nodes.length,
+                payload   = used / available,
+                unused    = []
+            ;
+
+            classes.nodes.forEach(function(e) {
+                e.used = false;
+                if (-1 != usedServices.indexOf(e['id'])) {
+                    e.used = true;
+                    unused.push(e['id']);
+                }
+            });
+
             var nodes   = cluster.nodes(packages.root(classes.nodes)),
                 links   = packages.imports(nodes, classes.edges),
                 splines = bundle(links)
             ;
+
+            d3.select("#container_filter").html(d3.format('%')(payload) + ' of services used (' + (classes.nodes.length - unused.length) + ' initialized) ');
 
             var svg = d3.select("#container_explorer").html('').append("svg")
                 .attr("width", diameter)
@@ -91,9 +110,9 @@
             ;
 
             svg.selectAll(".node")
-                .data(nodes.filter(function(n) { return !n.children; }))
+                .data(nodes)
                 .enter().append("g")
-                  .attr("class", "node")
+                  .attr("class", function (d) {return d.used ? 'node used': 'node'; })
                   .attr("id", function(d) { return "node-" + d.key; })
                   .attr("transform", function(d) { return "rotate(" + (d.x - 90) + ")translate(" + d.y + ")"; })
                 .append("text")
@@ -157,9 +176,9 @@
               // For each import, construct a link from the source to target node.
               edges.forEach(function(d) {
                   if (typeof map[d[1]] == 'undefined' ) {
-                      console.log(d[0]);
+                      //console.log(d[0]);
                   } else if (typeof map[d[0]] == 'undefined') {
-                      console.log(d[1]);
+                      //console.log(d[1]);
                   } else {
                     imports.push({
                         source: map[d[0]],
@@ -178,6 +197,10 @@
   font: 10px sans-serif;
 }
 
+.node.used text {
+  fill: green;
+}
+
 .link {
   stroke: steelblue;
   stroke-opacity: .5;
@@ -191,6 +214,7 @@ path.arc {
 
 .node {
   font-size: 10px;
+  fill: #e00;
 }
 
 .node:hover {

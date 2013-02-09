@@ -66,7 +66,7 @@ class JsonDumper extends Dumper
                             $edges[] = array($id, (string) $argument, $name);
                         }
                     } else {
-                        var_dump((string) $definition, get_class($definition));
+                        //var_dump((string) $definition, get_class($definition));
                     }
                 } catch (InvalidArgumentException $e) {
                     continue;
@@ -100,9 +100,6 @@ class JsonDumper extends Dumper
                     $class = $definition->getClass();
                     if (strpos($class, '%') === 0) {
                         $class = $this->container->getParameter(trim($class, '%'));
-                    }
-                    if ($class == null) {
-                        $class = 'Symfony\Bridge\Monolog\Logger';
                     }
                     $nodes[$id] = array(
                         'id'        => $id,
