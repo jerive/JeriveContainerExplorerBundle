@@ -10,5 +10,9 @@
     "minimum-stability": "dev",
     "require": {
 	"symfony/web-profiler-bundle": "*"
-    }
+    },
+    "autoload": {
+        "psr-0": { "Jerive\\Bundle\\ContainerExplorerBundle": "" }
+    },
+    "target-dir": "Jerive/Bundle/ContainerExplorerBundle",
 }
