@@ -3,7 +3,7 @@ JeriveContainerExplorerBundle
 
 Adds a WebDebugToolbar panel to explore the service container.
 
-Based on Mike Bostock's D3 library
+Based on Mike Bostock's awesome D3 library
     https://github.com/mbostock/d3/
 
 and flare example.
