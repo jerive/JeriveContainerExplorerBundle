@@ -14,5 +14,5 @@
     "autoload": {
         "psr-0": { "Jerive\\Bundle\\ContainerExplorerBundle": "" }
     },
-    "target-dir": "Jerive/Bundle/ContainerExplorerBundle",
+    "target-dir": "Jerive/Bundle/ContainerExplorerBundle"
 }
