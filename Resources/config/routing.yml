@@ -1,3 +1,0 @@
-jerive_container_explorer_homepage:
-    pattern:  /_container_json
-    defaults: { _controller: JeriveContainerExplorerBundle:Default:index }

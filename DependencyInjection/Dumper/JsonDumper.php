@@ -34,7 +34,7 @@ class JsonDumper extends Dumper
 
         return json_encode(array(
             'nodes' => array_values($this->nodes),
-            'edges' => array_reduce($this->edges, 'array_merge', array())
+            'edges' => array_reduce($this->edges, 'array_merge', array()),
         ));
     }
 
