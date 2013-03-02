@@ -2,8 +2,9 @@
     containerExplorer = function (classes, usedServices, my) {
         var config = {
             diameter: 900,
-            treeWidth: 600,
-            treeHeight: 300
+            treeWidth: 900,
+            treeHeight: 300,
+            apisearch: 'http://api.symfony.com/2.2/index.html?q='
         };
 
         d3.map(config).forEach(function(d, i){
@@ -14,8 +15,8 @@
 
         var diameter = config.diameter,
             radius = diameter / 2,
-            innerRadius = radius - 170,
-            treeWidth = config.treeWidth,
+            innerRadius = radius - 150,
+            treeWidth  = config.treeWidth,
             treeHeight = config.treeHeight
         ;
 
@@ -28,10 +29,6 @@
             .sort(null)
             .value(function(d) { return d.size; });
 
-        var treeCluster = d3.layout.cluster()
-            .size([treeHeight, treeWidth - 160])
-        ;
-
         var bundle = d3.layout.bundle();
 
         var used      = usedServices.length,
@@ -41,32 +38,36 @@
         ;
 
         var packages = {
-            // Lazily construct the package hierarchy from class names.
+            // Construct the package hierarchy from class names.
             root: function(classes) {
               var map = {};
 
               function find(name, data) {
-                var node = map[name], i;
-                if (!node) {
-                  node = map[name] = data || {name: name, children: []};
-                  if (name && name.length) {
-                    i = name.lastIndexOf("\\");
-                    if (i === -1) {
-                        i = name.lastIndexOf("_");
-                    }
-                    node.parent = find(name.substring(0, i));
-                    if (typeof node.parent.children == 'undefined') {
-                        node.parent.children = [];
-                    }
-                    node.parent.children.push(node);
-                    node.key = name.substring(i + 1);
+                  var node = map[name], i;
+                  if (!node) {
+                      node = map[name] = data || {
+                          name: name,
+                          children: []
+                      };
+
+                      if (name && name.length) {
+                          i = name.lastIndexOf("\\");
+                          if (i === -1) {
+                              i = name.lastIndexOf("_");
+                          }
+                          node.parent = find(name.substring(0, i));
+                          if (typeof node.parent.children == 'undefined') {
+                              node.parent.children = [];
+                          }
+                          node.parent.children.push(node);
+                          node.key = name.substring(i + 1);
+                      }
                   }
-                }
-                return node;
+                  return node;
               }
 
               classes.forEach(function(d) {
-                find(d['class'], d);
+                  find(d['class'], d);
               });
 
               return map[""];
@@ -79,7 +80,7 @@
 
               // Compute a map from name to node.
               nodes.forEach(function(d) {
-                map[d.id] = d;
+                  map[d.id] = d;
               });
 
               // For each import, construct a link from the source to target node.
@@ -117,16 +118,11 @@
      */
     function buildClosure(inverse)
     {
-        if (inverse) {
-            var origin = 0;
-            var dest   = 1;
-        } else {
-            var origin = 1;
-            var dest   = 0;
-        }
+        var origin = inverse ? 0 : 1;
+        var dest   = 1 - origin;
 
         return function transitiveClosure (service, current) {
-            if (typeof(current) == 'undefined') {
+            if (typeof(current) === 'undefined') {
                 var current = {
                     name: service,
                     children: []
@@ -134,7 +130,7 @@
             }
 
             classes.edges.forEach(function(e) {
-                if (e[origin] == service) {
+                if (e[origin] === service) {
                     current.children.push(transitiveClosure(e[dest]));
                 }
             });
@@ -145,39 +141,45 @@
 
         function drawTree(closure)
         {
-            var nodes = treeCluster.nodes(closure),
-                links = treeCluster.links(nodes);
+            var diameter = 760;
 
-            var tree = d3.select("#container_tree").html('').append("svg")
-                .attr("width", treeWidth)
-                .attr("height", treeHeight)
+            var tree = d3.layout.tree()
+                .size([360, diameter / 2 - 120])
+                .separation(function(a, b) { return (a.parent == b.parent ? 1 : 2) / a.depth; });
+
+
+            var nodes = tree.nodes(closure),
+                links = tree.links(nodes);
+
+            var diagonal = d3.svg.diagonal.radial()
+                .projection(function(d) { return [d.y, d.x / 180 * Math.PI]; });
+
+            var svg = d3.select("#container_tree").html('').append("svg")
+                .attr("width", diameter)
+                .attr("height", diameter - 150)
               .append("g")
-                .attr("transform", "translate(100,0)");
-            ;
+                .attr("transform", "translate(" + diameter / 2 + "," + diameter / 2 + ")");
 
-            var link = tree.selectAll('.link')
+            var link = svg.selectAll(".link")
                 .data(links)
-              .enter().append('path')
+              .enter().append("path")
                 .attr("class", "link")
-                .attr("d", diagonal)
-            ;
+                .attr("d", diagonal);
 
-            var node = tree.selectAll(".node")
+            var node = svg.selectAll(".node")
                 .data(nodes)
               .enter().append("g")
                 .attr("class", "node")
-                .attr("transform", function(d) { return "translate(" + d.y + "," + d.x + ")"; })
+                .attr("transform", function(d) { return "rotate(" + (d.x - 90) + ")translate(" + d.y + ")"; })
 
             node.append("circle")
                 .attr("r", 4.5);
 
             node.append("text")
-                .attr("dx", function(d) { return d.children ? -8 : 8; })
-                .attr("dy", 3)
-                .style("text-anchor", "middle")
-                .attr('transform', "translate(0,-13)")
-                .text(function(d) { return d.name; })
-            ;
+                .attr("dy", ".31em")
+                .attr("text-anchor", function(d) { return d.x < 180 ? "start" : "end"; })
+                .attr("transform", function(d) { return d.x < 180 ? "translate(8)" : "rotate(180)translate(-8)"; })
+                .text(function(d) { return d.name; });
         }
 
         var nodes   = cluster.nodes(packages.root(classes.nodes)),
@@ -254,10 +256,37 @@
               .attr("dy", ".31em")
               .attr("text-anchor", function(d) { return d.x < 180 ? "start" : "end"; })
               .attr("transform", function(d) { return d.x < 180 ? null : "rotate(180)"; })
-              .text(function(d) { return d.id; })
+              .text(function(d) {
+                    if (typeof d.class !== 'undefined') {
+                        var ns = d.class.split('\\');
+                        return ns.length > 1 ? ns[0] + '\\...\\' + ns.slice(-1)[0]: ns[0];
+                    }
+              })
               .on('mouseover', mouseover)
               .on('mouseout', mouseout)
-              .on('click', function(d) { drawTree(buildClosure(false)(d.id)); })
+              .on('dblclick', function(d) {
+                  if (typeof d.class !== 'undefined') {
+                      var vendor = d.class.split('\\')[0];
+                      if (vendor === 'Symfony') {
+                          window.open(config.apisearch + d.class, '_blank');
+                      }
+                  }
+              })
+              .on('click', function(d) {
+                  drawTree({
+                      name: d.id,
+                      children: [
+                          {
+                              name: 'NEEDS',
+                              children: buildClosure(true)(d.id).children
+                          },
+                          {
+                              name: 'IS NEEDED BY',
+                              children: buildClosure(false)(d.id).children
+                          }
+                      ]
+                  });
+              })
         ;
 
         d3.select("input[type=range]").on("change", function() {
