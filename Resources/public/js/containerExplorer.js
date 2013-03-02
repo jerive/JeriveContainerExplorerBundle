@@ -101,13 +101,41 @@
             }
         };
 
-        classes.nodes.forEach(function(e) {
-            e.used = false;
-            if (-1 != usedServices.indexOf(e['id'])) {
-                e.used = true;
-                unused.push(e['id']);
+    classes.nodes.forEach(function(e) {
+        e.used = false;
+        if (-1 != usedServices.indexOf(e['id'])) {
+            e.used = true;
+            unused.push(e['id']);
+        }
+    });
+
+    function printClass(d)
+    {
+        if (typeof d.class !== 'undefined') {
+            var ns     = d.class.split('\\'),
+                vendor = ns[0];
+
+            if (ns.length > 1) {
+                return vendor + (ns.length > 2 ? '\\...\\' : '\\') + ns.slice(-1)[0]
+            } else {
+                return vendor;
             }
-        });
+        }
+    }
+
+    function printService(d)
+    {
+        if (typeof d.id !== 'undefined') {
+            var ns   = d.id.split('.'),
+                main = ns[0];
+
+            if (ns.length > 1) {
+                return main + (ns.length > 2 ? '...' : '.') + ns.slice(-1)[0]
+            } else {
+                return main;
+            }
+        }
+    }
 
     /**
      * Builds a function which builds the
@@ -256,12 +284,7 @@
               .attr("dy", ".31em")
               .attr("text-anchor", function(d) { return d.x < 180 ? "start" : "end"; })
               .attr("transform", function(d) { return d.x < 180 ? null : "rotate(180)"; })
-              .text(function(d) {
-                    if (typeof d.class !== 'undefined') {
-                        var ns = d.class.split('\\');
-                        return ns.length > 1 ? ns[0] + '\\...\\' + ns.slice(-1)[0]: ns[0];
-                    }
-              })
+              .text(printClass)
               .on('mouseover', mouseover)
               .on('mouseout', mouseout)
               .on('dblclick', function(d) {
