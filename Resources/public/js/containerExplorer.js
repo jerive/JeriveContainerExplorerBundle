@@ -7,6 +7,17 @@
             apisearch: 'http://api.symfony.com/2.2/index.html?q='
         };
 
+        classes.nodes.push({
+            id:    'service_container',
+            class: 'Symfony\\Component\\DependencyInjection\\Container'
+        });
+
+        var indexedNodes = {};
+        classes.nodes.forEach(function(e) {
+            e.used = -1 !== usedServices.indexOf(e['id']);
+            indexedNodes[e.id] = e;
+        });
+
         d3.map(config).forEach(function(d, i){
             if (typeof my[i] != 'undefined') {
                 config[i] = my[i];
@@ -101,14 +112,6 @@
             }
         };
 
-    classes.nodes.forEach(function(e) {
-        e.used = false;
-        if (-1 != usedServices.indexOf(e['id'])) {
-            e.used = true;
-            unused.push(e['id']);
-        }
-    });
-
     function printClass(d)
     {
         if (typeof d.class !== 'undefined') {
@@ -125,7 +128,7 @@
 
     function printService(d)
     {
-        if (typeof d.id !== 'undefined') {
+        if (typeof d !== 'undefined' && typeof d.id !== 'undefined') {
             var ns   = d.id.split('.'),
                 main = ns[0];
 
@@ -152,7 +155,7 @@
         return function transitiveClosure (service, current) {
             if (typeof(current) === 'undefined') {
                 var current = {
-                    name: service,
+                    name: indexedNodes[service],
                     children: []
                 };
             }
@@ -169,12 +172,11 @@
 
         function drawTree(closure)
         {
-            var diameter = 760;
+            var diameter = 600;
 
             var tree = d3.layout.tree()
-                .size([360, diameter / 2 - 120])
+                .size([360, diameter / 2 - 60])
                 .separation(function(a, b) { return (a.parent == b.parent ? 1 : 2) / a.depth; });
-
 
             var nodes = tree.nodes(closure),
                 links = tree.links(nodes);
@@ -184,7 +186,7 @@
 
             var svg = d3.select("#container_tree").html('').append("svg")
                 .attr("width", diameter)
-                .attr("height", diameter - 150)
+                .attr("height", diameter)
               .append("g")
                 .attr("transform", "translate(" + diameter / 2 + "," + diameter / 2 + ")");
 
@@ -207,7 +209,7 @@
                 .attr("dy", ".31em")
                 .attr("text-anchor", function(d) { return d.x < 180 ? "start" : "end"; })
                 .attr("transform", function(d) { return d.x < 180 ? "translate(8)" : "rotate(180)translate(-8)"; })
-                .text(function(d) { return d.name; });
+                .text(function(d) { return printService(d.name); });
         }
 
         var nodes   = cluster.nodes(packages.root(classes.nodes)),
@@ -297,14 +299,14 @@
               })
               .on('click', function(d) {
                   drawTree({
-                      name: d.id,
+                      name: d,
                       children: [
                           {
-                              name: 'NEEDS',
+                              name: { id: 'NEEDS'},
                               children: buildClosure(true)(d.id).children
                           },
                           {
-                              name: 'IS NEEDED BY',
+                              name: { id: 'IS NEEDED BY' },
                               children: buildClosure(false)(d.id).children
                           }
                       ]
